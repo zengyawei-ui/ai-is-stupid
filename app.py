@@ -11,7 +11,7 @@ MY_KEY = "c9d1c77ce8msh35384666f22e8fdp17865ejsn9a531f8f3c7b"
 # 3. 数据获取函数
 def fetch_live_odds():
     # 注意：这里的 /odds 是关键
-    url = "https://v3.football.api-sports.io"
+    url = "https://v3.football.api-sports.io/odds"
     params = {"live": "all"}
     headers = {
         'x-rapidapi-key': MY_KEY,
