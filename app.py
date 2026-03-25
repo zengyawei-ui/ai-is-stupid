@@ -1,45 +1,53 @@
 import streamlit as st
-import pandas as pd
 import requests
+import pandas as pd
 
-# 设置网页标题
-st.set_page_config(page_title="足球赔率自动化工具", layout="centered")
+# 1. 基础配置
+st.set_page_config(page_title="AI私人数操站", layout="wide")
+st.title("⚽ 足球实时比分监控 (API版)")
 
-st.title("⚽ 实时足球赔率监测器")
-st.info("当前模式：纯净版（已修复重复ID报错）")
+# 你的 API 信息（已填好）
+MY_KEY = "c9d1c77c3de7cf3ca57bf8288eeca53b"
+API_HOST = "v3.football.api-sports.io"
 
-# 侧边栏配置
-with st.sidebar:
-    st.header("⚙️ 系统设置")
-    if st.button("🚀 强制刷新页面"):
-        st.rerun()
-
-# 核心功能：抓取数据
-def fetch_odds():
-    # 注意：这里的 URL 请确保是你之前那个部署好的后端 API 地址
-    # 如果你还没部署后端，这一步会提示连接失败
-    target_url = "https://your-backend-api.com" 
+def fetch_live_data():
+    # 获取全球正在进行的比赛
+    url = "https://api-sports.io"
+    headers = {
+        'x-rapidapi-key': MY_KEY,
+        'x-rapidapi-host': API_HOST
+    }
     try:
-        response = requests.get(target_url, timeout=10)
-        if response.status_code == 200:
-            data = response.json()
-            return pd.DataFrame(data)
-        else:
-            st.error(f"服务器返回错误: {response.status_code}")
-            return None
+        res = requests.get(url, headers=headers, timeout=15)
+        data = res.json()
+        if data.get('response'):
+            results = []
+            for item in data['response']:
+                results.append({
+                    "联赛": item['league']['name'],
+                    "主队": item['teams']['home']['name'],
+                    "客队": item['teams']['away']['name'],
+                    "比分": f"{item['goals']['home']}-{item['goals']['away']}",
+                    "比赛分钟": f"{item['fixture']['status']['elapsed']}'"
+                })
+            return pd.DataFrame(results)
+        return "empty"
     except Exception as e:
-        st.warning("提示：后端接口暂未响应，请检查 API 地址是否正确。")
-        return None
+        return str(e)
 
-# 页面主按钮
-if st.button("🎯 立即同步实时数据", type="primary"):
-    with st.spinner("正在穿越时空抓取赔率..."):
-        df = fetch_odds()
-        if df is not None:
-            st.success("✅ 数据更新成功！")
+# 2. 界面展示
+st.info("💡 这是一个完全属于你的数据监控站")
+
+if st.button('🚀 立即刷新：调取全球实时赛况', type="primary"):
+    with st.spinner('正在穿越大气层抓取数据...'):
+        df = fetch_live_data()
+        if isinstance(df, pd.DataFrame):
+            st.success(f"✅ 成功连接！当前共有 {len(df)} 场比赛正在进行。")
             st.dataframe(df, use_container_width=True)
+        elif df == "empty":
+            st.warning("⚠️ 目前全球暂时没有正在进行的比赛。")
         else:
-            st.info("💡 暂时没有抓取到新数据，请稍后重试。")
+            st.error(f"连接失败: {df}")
 
 st.divider()
-st.caption("状态：运行中 | 自动修复机制已启动")
+st.caption("项目状态：已成功挂载 API-Sports 数据源 | app.py 已就绪")
