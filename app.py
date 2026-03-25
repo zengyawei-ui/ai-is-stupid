@@ -10,6 +10,7 @@ MY_KEY = st.secrets["MY_FOOTBALL_KEY"]
 
 # 3. 数据获取函数
 def fetch_live_odds():
+    # 这里的地址必须是 /odds 才能抓到赔率！
     url = "https://api-sports.io"
     params = {"live": "all"}
     headers = {
@@ -35,6 +36,7 @@ if st.button("🎯 立即同步实时数据"):
                 home = item.get('teams', {}).get('home', {}).get('name', '主队')
                 away = item.get('teams', {}).get('away', {}).get('name', '客队')
                 with st.expander(f"🏆 {l_name}: {home} VS {away}"):
+                    # 显示每一场比赛的博彩公司赔率
                     st.json(item.get('bookmakers', []))
         else:
             st.warning("目前没有正在进行的比赛，或 API 额度已用完。")
